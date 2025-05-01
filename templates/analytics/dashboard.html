@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - AI Journalist Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-chart-line me-2"></i> Analytics Dashboard
+        </h1>
+        <p class="lead text-muted">Insights and trends from journalist content analysis</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Journalists</h5>
+                        <h2 class="mb-0">{{ journalist_count }}</h2>
+                    </div>
+                    <div class="h1 align-self-center">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small>Tracked journalists</small>
+                <a href="{{ url_for('journalists.list_journalists') }}" class="text-white">View All</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Media Outlets</h5>
+                        <h2 class="mb-0">{{ outlet_count }}</h2>
+                    </div>
+                    <div class="h1 align-self-center">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small>News organizations</small>
+                <a href="{{ url_for('outlets.list_outlets') }}" class="text-white">View All</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Articles</h5>
+                        <h2 class="mb-0">{{ article_count }}</h2>
+                    </div>
+                    <div class="h1 align-self-center">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small>Analyzed articles</small>
+                <a href="{{ url_for('search.search_results') }}" class="text-white">View All</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stats-card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Topics</h5>
+                        <h2 class="mb-0">{{ topic_count }}</h2>
+                    </div>
+                    <div class="h1 align-self-center">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small>Tracked topics</small>
+                <a href="{{ url_for('search.search_page') }}?type=topics" class="text-dark">View All</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sentiment Analysis Overview -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-smile me-2"></i> Sentiment Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="chart-container">
+                            <canvas id="sentimentPieChart" data-chart-type="pie" data-chart-data='{{ sentiment_data }}'></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <h6>Overall Content Sentiment</h6>
+                        <p class="text-muted mb-4">Based on {{ article_count }} analyzed articles</p>
+                        
+                        <div class="alert" role="alert" style="background-color: rgba(var(--bs-primary-rgb), 0.15);">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <span id="sentimentInsight">
+                                Analyzing sentiment trends across all tracked journalists. The distribution shows the overall tone of news content in our database.
+                            </span>
+                        </div>
+                        
+                        <div class="d-grid mt-3">
+                            <a href="{{ url_for('search.search_results') }}?sentiment=positive" class="btn btn-outline-success mb-2">
+                                <i class="fas fa-smile me-2"></i> View Positive Content
+                            </a>
+                            <a href="{{ url_for('search.search_results') }}?sentiment=negative" class="btn btn-outline-danger mb-2">
+                                <i class="fas fa-frown me-2"></i> View Negative Content
+                            </a>
+                            <a href="{{ url_for('search.search_results') }}?sentiment=neutral" class="btn btn-outline-info">
+                                <i class="fas fa-meh me-2"></i> View Neutral Content
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Topics -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-tags me-2"></i> Popular Topics</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="topicsChart" data-chart-type="horizontalBar" data-chart-data='{{ topic_data }}'></canvas>
+                </div>
+                <div class="alert mt-3" role="alert" style="background-color: rgba(var(--bs-primary-rgb), 0.15);">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This chart shows the most frequently covered topics across all tracked articles.
+                </div>
+                <div class="text-end mt-3">
+                    <button id="refreshTopicsBtn" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync-alt me-2"></i> Refresh Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Media Outlets Comparison -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-building me-2"></i> Top Media Outlets</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="outletsChart" data-chart-type="bar" data-chart-data='{{ outlet_data }}'></canvas>
+                </div>
+                <div class="mt-3">
+                    <h6>Outlet Influence Analysis</h6>
+                    <p class="text-muted">Based on journalist count and article volume</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Outlet</th>
+                                    <th>Journalists</th>
+                                    <th>Sentiment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for outlet in outlets[:5] %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('outlets.outlet_detail', outlet_id=outlet.id) }}" class="text-decoration-none">
+                                            {{ outlet.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ outlet.journalists|length }}</td>
+                                    <td>
+                                        {% set positive = namespace(count=0) %}
+                                        {% set negative = namespace(count=0) %}
+                                        {% set neutral = namespace(count=0) %}
+                                        
+                                        {% for article in outlet.articles %}
+                                            {% if article.sentiment_label == 'positive' %}
+                                                {% set positive.count = positive.count + 1 %}
+                                            {% elif article.sentiment_label == 'negative' %}
+                                                {% set negative.count = negative.count + 1 %}
+                                            {% else %}
+                                                {% set neutral.count = neutral.count + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% set total = positive.count + negative.count + neutral.count %}
+                                        {% if total > 0 %}
+                                            {% if positive.count >= negative.count and positive.count >= neutral.count %}
+                                                <span class="badge bg-success">Mostly Positive</span>
+                                            {% elif negative.count >= positive.count and negative.count >= neutral.count %}
+                                                <span class="badge bg-danger">Mostly Negative</span>
+                                            {% else %}
+                                                <span class="badge bg-info">Mostly Neutral</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Unknown</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Tone Analysis -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-volume-up me-2"></i> Content Tone Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="toneChart" data-chart-type="bar" data-chart-data='{{ tone_data }}'></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="alert" role="alert" style="background-color: rgba(var(--bs-primary-rgb), 0.15);">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        Tone analysis examines the style and approach of content beyond sentiment. This helps understand the communication style journalists use.
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>Common Tone Patterns</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Analytical
+                                    <span class="badge bg-primary rounded-pill">{{ tone_data|tojson|fromjson }}% of articles</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Confident
+                                    <span class="badge bg-primary rounded-pill">{{ tone_data|tojson|fromjson }}% of articles</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Tentative
+                                    <span class="badge bg-primary rounded-pill">{{ tone_data|tojson|fromjson }}% of articles</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Tone by Topic</h6>
+                            <div class="small text-muted mb-2">Dominant tones for top topics</div>
+                            <ul class="list-unstyled">
+                                <li class="mb-1">Politics: <span class="badge bg-secondary">Analytical</span></li>
+                                <li class="mb-1">Technology: <span class="badge bg-secondary">Confident</span></li>
+                                <li class="mb-1">Business: <span class="badge bg-secondary">Analytical</span></li>
+                                <li class="mb-1">Health: <span class="badge bg-secondary">Informative</span></li>
+                                <li class="mb-1">Environment: <span class="badge bg-secondary">Critical</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Data Visualization Banner -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-body p-0">
+                <div id="visualizationBanner" class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71" alt="Data Visualization" class="img-fluid w-100" style="max-height: 300px; object-fit: cover;">
+                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background-color: rgba(0, 0, 0, 0.6);">
+                        <div class="container text-center text-white">
+                            <h2 class="display-6">Advanced Journalist Analytics</h2>
+                            <p class="lead">Gain valuable insights with AI-powered analysis of journalist content and sentiment.</p>
+                            <div class="mt-3">
+                                <a href="{{ url_for('search.search_page') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-search me-2"></i> Start Exploring
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sentiment Over Time -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i> Sentiment Trends Over Time</h5>
+                <div>
+                    <select id="timeRangeSelect" class="form-select form-select-sm" style="width: auto;">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 3 months</option>
+                        <option value="180">Last 6 months</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="sentimentTrendChart" data-chart-type="multiLine"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This chart shows the trend of sentiment in articles over time. Watch for patterns that might correlate with major events.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize sentiment trend chart with empty data
+    const trendChartCtx = document.getElementById('sentimentTrendChart').getContext('2d');
+    const sentimentTrendChart = new Chart(trendChartCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Positive',
+                    data: [],
+                    borderColor: 'rgb(25, 135, 84)',
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Negative',
+                    data: [],
+                    borderColor: 'rgb(220, 53, 69)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Neutral',
+                    data: [],
+                    borderColor: 'rgb(13, 202, 240)',
+                    backgroundColor: 'rgba(13, 202, 240, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#e9ecef'
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#adb5bd'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#adb5bd'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Fetch sentiment data over time
+    function fetchSentimentData(days = 30) {
+        fetch('/analytics/data/sentiment')
+            .then(response => response.json())
+            .then(data => {
+                // Update chart with new data
+                sentimentTrendChart.data.labels = data.dates.slice(-days);
+                sentimentTrendChart.data.datasets[0].data = data.positive.slice(-days);
+                sentimentTrendChart.data.datasets[1].data = data.negative.slice(-days);
+                sentimentTrendChart.data.datasets[2].data = data.neutral.slice(-days);
+                sentimentTrendChart.update();
+            })
+            .catch(error => {
+                console.error('Error fetching sentiment data:', error);
+            });
+    }
+    
+    // Initial fetch
+    fetchSentimentData();
+    
+    // Handle time range changes
+    document.getElementById('timeRangeSelect').addEventListener('change', function() {
+        fetchSentimentData(parseInt(this.value));
+    });
+    
+    // Refresh topic data button handler
+    document.getElementById('refreshTopicsBtn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Loading...';
+        
+        fetch('/analytics/data/topics')
+            .then(response => response.json())
+            .then(data => {
+                // Get the topics chart
+                const topicsChart = Chart.getChart('topicsChart');
+                if (topicsChart) {
+                    topicsChart.data.labels = data.labels;
+                    topicsChart.data.datasets[0].data = data.data;
+                    topicsChart.update();
+                }
+                
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-sync-alt me-2"></i> Refresh Data';
+            })
+            .catch(error => {
+                console.error('Error refreshing topic data:', error);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-sync-alt me-2"></i> Refresh Data';
+            });
+    });
+    
+    // Generate sentiment insight based on data
+    const sentimentData = JSON.parse('{{ sentiment_data|safe }}');
+    const positivePercentage = sentimentData.data[0];
+    const negativePercentage = sentimentData.data[1];
+    const neutralPercentage = sentimentData.data[2];
+    
+    let insightText = '';
+    if (positivePercentage > negativePercentage && positivePercentage > neutralPercentage) {
+        insightText = `Overall sentiment is predominantly positive (${positivePercentage}%), indicating a generally optimistic tone across tracked journalists.`;
+    } else if (negativePercentage > positivePercentage && negativePercentage > neutralPercentage) {
+        insightText = `Overall sentiment is predominantly negative (${negativePercentage}%), suggesting a critical or pessimistic tone across tracked journalists.`;
+    } else {
+        insightText = `Overall sentiment is predominantly neutral (${neutralPercentage}%), indicating objective and balanced reporting across tracked journalists.`;
+    }
+    
+    document.getElementById('sentimentInsight').textContent = insightText;
+});
+</script>
+{% endblock %}

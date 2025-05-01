@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results - AI Journalist Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('search.search_page') }}">Search</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Results</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Search Summary -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title mb-3">
+                    <i class="fas fa-search me-2"></i> Search Results
+                    {% if query %}
+                    <small class="text-muted">for "{{ query }}"</small>
+                    {% endif %}
+                </h4>
+                
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% if query %}
+                    <span class="badge bg-primary d-flex align-items-center">
+                        <span class="me-1">Query: {{ query }}</span>
+                        <a href="{{ url_for('search.search_results', type=entity_type, topic=topic, country=country, sentiment=sentiment) }}" class="text-white ms-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    
+                    {% if entity_type and entity_type != 'all' %}
+                    <span class="badge bg-secondary d-flex align-items-center">
+                        <span class="me-1">Type: {{ entity_type|capitalize }}</span>
+                        <a href="{{ url_for('search.search_results', q=query, topic=topic, country=country, sentiment=sentiment) }}" class="text-white ms-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    
+                    {% if topic %}
+                    <span class="badge bg-info d-flex align-items-center">
+                        <span class="me-1">Topic: {{ topic }}</span>
+                        <a href="{{ url_for('search.search_results', q=query, type=entity_type, country=country, sentiment=sentiment) }}" class="text-white ms-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    
+                    {% if country %}
+                    <span class="badge bg-success d-flex align-items-center">
+                        <span class="me-1">Country: {{ country }}</span>
+                        <a href="{{ url_for('search.search_results', q=query, type=entity_type, topic=topic, sentiment=sentiment) }}" class="text-white ms-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    
+                    {% if sentiment %}
+                    <span class="badge bg-{{ 'success' if sentiment == 'positive' else 'danger' if sentiment == 'negative' else 'info' }} d-flex align-items-center">
+                        <span class="me-1">Sentiment: {{ sentiment|capitalize }}</span>
+                        <a href="{{ url_for('search.search_results', q=query, type=entity_type, topic=topic, country=country) }}" class="text-white ms-1">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                    {% endif %}
+                    
+                    {% if query or entity_type != 'all' or topic or country or sentiment %}
+                    <a href="{{ url_for('search.search_results') }}" class="btn btn-sm btn-outline-secondary">Clear All</a>
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-light">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Found 
+                    <strong>{{ results.journalists|length }}</strong> journalists,
+                    <strong>{{ results.outlets|length }}</strong> media outlets, and
+                    <strong>{{ results.articles|length }}</strong> articles
+                    matching your search criteria.
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('search.search_page') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-search me-2"></i> New Search
+                    </a>
+                    <a href="{{ url_for('search.export_results', q=query, type=entity_type, topic=topic, country=country, sentiment=sentiment) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-download me-2"></i> Export Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Tabs -->
+<ul class="nav nav-tabs mb-4" id="resultsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {{ 'active' if entity_type == 'all' or entity_type == 'journalists' else '' }}" id="journalists-tab" data-bs-toggle="tab" data-bs-target="#journalists" type="button" role="tab" aria-controls="journalists" aria-selected="{{ 'true' if entity_type == 'all' or entity_type == 'journalists' else 'false' }}">
+            Journalists <span class="badge bg-primary">{{ results.journalists|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {{ 'active' if entity_type == 'outlets' else '' }}" id="outlets-tab" data-bs-toggle="tab" data-bs-target="#outlets" type="button" role="tab" aria-controls="outlets" aria-selected="{{ 'true' if entity_type == 'outlets' else 'false' }}">
+            Media Outlets <span class="badge bg-primary">{{ results.outlets|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {{ 'active' if entity_type == 'articles' else '' }}" id="articles-tab" data-bs-toggle="tab" data-bs-target="#articles" type="button" role="tab" aria-controls="articles" aria-selected="{{ 'true' if entity_type == 'articles' else 'false' }}">
+            Articles <span class="badge bg-primary">{{ results.articles|length }}</span>
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="resultsTabContent">
+    <!-- Journalists Tab -->
+    <div class="tab-pane fade {{ 'show active' if entity_type == 'all' or entity_type == 'journalists' else '' }}" id="journalists" role="tabpanel" aria-labelledby="journalists-tab">
+        {% if results.journalists %}
+        <div class="row">
+            {% for journalist in results.journalists %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{{ journalist.profile_image_url }}" alt="{{ journalist.name }}" class="rounded-circle" width="60" height="60">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="card-title mb-0">{{ journalist.name }}</h5>
+                                <p class="text-muted mb-0">{{ journalist.outlet or 'Independent' }}</p>
+                            </div>
+                        </div>
+                        
+                        <p class="card-text">{{ journalist.bio[:100] + '...' if journalist.bio and journalist.bio|length > 100 else journalist.bio or 'No biography available' }}</p>
+                        
+                        {% if journalist.topics %}
+                        <div class="mt-2">
+                            {% for topic in journalist.topics[:3] %}
+                            <span class="badge bg-secondary me-1">{{ topic }}</span>
+                            {% endfor %}
+                            {% if journalist.topics|length > 3 %}
+                            <span class="badge bg-secondary">+{{ journalist.topics|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ journalist.location or 'Location unknown' }}
+                        </small>
+                        <a href="{{ url_for('journalists.journalist_detail', journalist_id=journalist.id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No journalists found matching your search criteria.
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Media Outlets Tab -->
+    <div class="tab-pane fade {{ 'show active' if entity_type == 'outlets' else '' }}" id="outlets" role="tabpanel" aria-labelledby="outlets-tab">
+        {% if results.outlets %}
+        <div class="row">
+            {% for outlet in results.outlets %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{{ outlet.image_url }}" alt="{{ outlet.name }}" class="rounded" width="60" height="60">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="card-title mb-0">{{ outlet.name }}</h5>
+                                <p class="text-muted mb-0">{{ outlet.country or 'International' }}</p>
+                            </div>
+                        </div>
+                        
+                        <p class="card-text">{{ outlet.description[:100] + '...' if outlet.description and outlet.description|length > 100 else outlet.description or 'No description available' }}</p>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <span class="badge bg-primary">{{ outlet.journalist_count }} Journalists</span>
+                            
+                            {% if outlet.website %}
+                            <a href="{{ outlet.website }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-globe me-1"></i> Website
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{{ url_for('outlets.outlet_detail', outlet_id=outlet.id) }}" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No media outlets found matching your search criteria.
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Articles Tab -->
+    <div class="tab-pane fade {{ 'show active' if entity_type == 'articles' else '' }}" id="articles" role="tabpanel" aria-labelledby="articles-tab">
+        {% if results.articles %}
+        <div class="table-responsive">
+            <table class="table table-hover datatable" data-export="true">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Published</th>
+                        <th>Journalist</th>
+                        <th>Outlet</th>
+                        <th>Sentiment</th>
+                        <th>Topics</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in results.articles %}
+                    <tr>
+                        <td>{{ article.title }}</td>
+                        <td>{{ article.published_at|default('Unknown', true) }}</td>
+                        <td>
+                            {% if article.journalist %}
+                            <a href="{{ url_for('journalists.journalist_detail', journalist_id=article.journalist_id) }}" class="text-decoration-none">
+                                {{ article.journalist }}
+                            </a>
+                            {% else %}
+                            Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if article.outlet %}
+                            <a href="{{ url_for('outlets.outlet_detail', outlet_id=article.outlet_id) }}" class="text-decoration-none">
+                                {{ article.outlet }}
+                            </a>
+                            {% else %}
+                            Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if article.sentiment_label == 'positive' else 'danger' if article.sentiment_label == 'negative' else 'info' }}">
+                                {{ article.sentiment_label|capitalize if article.sentiment_label else 'Unknown' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% for topic in article.topics[:2] %}
+                            <span class="badge bg-secondary">{{ topic }}</span>
+                            {% endfor %}
+                            {% if article.topics|length > 2 %}
+                            <span class="badge bg-secondary">+{{ article.topics|length - 2 }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ article.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No articles found matching your search criteria.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

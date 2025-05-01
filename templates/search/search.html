@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Search - AI Journalist Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1542744173-05336fcc7ad4');
+        background-size: cover;
+        background-position: center;
+        padding: 4rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Search Hero Section -->
+<div class="search-hero text-white text-center mb-4">
+    <div class="container">
+        <h1 class="display-4 mb-3"><i class="fas fa-search me-3"></i>Advanced Journalist Search</h1>
+        <p class="lead mb-4">Find journalists, media outlets, and articles with our powerful search tools</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <form id="search-form" action="{{ url_for('search.search_results') }}" method="get" class="mb-3">
+                    <div class="input-group input-group-lg">
+                        <input type="text" class="form-control" id="search-query" name="q" placeholder="Search for journalists, outlets, or articles...">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search me-2"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Search Options -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-sliders-h me-2"></i> Advanced Search Options</h5>
+    </div>
+    <div class="card-body">
+        <form id="advanced-search-form" action="{{ url_for('search.search_results') }}" method="get">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="type" class="form-label">Search Type</label>
+                    <select class="form-select" id="type" name="type">
+                        <option value="all" selected>All</option>
+                        <option value="journalists">Journalists Only</option>
+                        <option value="outlets">Media Outlets Only</option>
+                        <option value="articles">Articles Only</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label for="topic" class="form-label">Topic</label>
+                    <select class="form-select" id="topic" name="topic">
+                        <option value="" selected>All Topics</option>
+                        {% for topic in topics %}
+                        <option value="{{ topic.name }}">{{ topic.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="country" class="form-label">Country</label>
+                    <select class="form-select" id="country" name="country">
+                        <option value="" selected>All Countries</option>
+                        {% for country in countries %}
+                        <option value="{{ country }}">{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="sentiment" class="form-label">Sentiment</label>
+                    <select class="form-select" id="sentiment" name="sentiment">
+                        <option value="" selected>All Sentiments</option>
+                        <option value="positive">Positive</option>
+                        <option value="negative">Negative</option>
+                        <option value="neutral">Neutral</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <label for="advanced-query" class="form-label">Keyword Search</label>
+                    <input type="text" class="form-control" id="advanced-query" name="q" placeholder="Enter keywords...">
+                </div>
+                
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="reset" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-times me-2"></i> Clear
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Search Categories -->
+<h4 class="mb-3"><i class="fas fa-bolt me-2"></i> Quick Search</h4>
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-user-edit me-2"></i> Journalists</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&country=United%20States" class="text-decoration-none">
+                            <i class="fas fa-flag-usa me-2"></i> US Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Politics" class="text-decoration-none">
+                            <i class="fas fa-landmark me-2"></i> Political Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Technology" class="text-decoration-none">
+                            <i class="fas fa-microchip me-2"></i> Tech Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&sentiment=positive" class="text-decoration-none">
+                            <i class="fas fa-smile me-2"></i> Positive-Leaning Journalists
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-building me-2"></i> Media Outlets</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&country=United%20States" class="text-decoration-none">
+                            <i class="fas fa-flag-usa me-2"></i> US Media Outlets
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&country=United%20Kingdom" class="text-decoration-none">
+                            <i class="fas fa-globe-europe me-2"></i> UK Media Outlets
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Technology" class="text-decoration-none">
+                            <i class="fas fa-microchip me-2"></i> Tech-Focused Outlets
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Business" class="text-decoration-none">
+                            <i class="fas fa-chart-line me-2"></i> Business News Outlets
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-newspaper me-2"></i> Articles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Politics" class="text-decoration-none">
+                            <i class="fas fa-landmark me-2"></i> Political Stories
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&sentiment=positive" class="text-decoration-none">
+                            <i class="fas fa-smile me-2"></i> Positive News
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&sentiment=negative" class="text-decoration-none">
+                            <i class="fas fa-frown me-2"></i> Negative News
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Technology" class="text-decoration-none">
+                            <i class="fas fa-microchip me-2"></i> Tech Articles
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results Container -->
+<div id="search-results" class="mt-4"></div>
+
+<!-- Trending Topics Section -->
+<div class="card mt-5">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-fire me-2"></i> Trending Topics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 bg-primary bg-opacity-10">
+                    <div class="card-body text-center">
+                        <i class="fas fa-landmark fa-3x mb-3"></i>
+                        <h5>Politics</h5>
+                        <p class="small">{{ topics[0].articles|length if topics and topics|length > 0 else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Politics" class="btn btn-sm btn-outline-primary mt-2">View Articles</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 bg-success bg-opacity-10">
+                    <div class="card-body text-center">
+                        <i class="fas fa-microchip fa-3x mb-3"></i>
+                        <h5>Technology</h5>
+                        <p class="small">{{ topics[1].articles|length if topics and topics|length > 1 else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Technology" class="btn btn-sm btn-outline-success mt-2">View Articles</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 bg-info bg-opacity-10">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h5>Business</h5>
+                        <p class="small">{{ topics[2].articles|length if topics and topics|length > 2 else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Business" class="btn btn-sm btn-outline-info mt-2">View Articles</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card h-100 bg-warning bg-opacity-10">
+                    <div class="card-body text-center">
+                        <i class="fas fa-flask fa-3x mb-3"></i>
+                        <h5>Science</h5>
+                        <p class="small">{{ topics[3].articles|length if topics and topics|length > 3 else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Science" class="btn btn-sm btn-outline-warning mt-2">View Articles</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

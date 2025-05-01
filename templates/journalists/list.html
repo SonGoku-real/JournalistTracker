@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Journalists - AI Journalist Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-user-edit me-2"></i> Journalists
+        </h1>
+        <p class="lead text-muted">Browse and filter journalist profiles</p>
+    </div>
+    <div class="col-auto d-flex align-items-center">
+        <button class="btn btn-outline-secondary export-csv" data-endpoint="{{ url_for('journalists.export_journalists') }}">
+            <i class="fas fa-download me-2"></i> Export CSV
+        </button>
+    </div>
+</div>
+
+<!-- Filter form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-filter me-2"></i> Filter Journalists</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('journalists.list_journalists') }}" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" class="form-control" id="location" name="location" value="{{ request.args.get('location', '') }}" placeholder="City, Country">
+                </div>
+                <div class="col-md-3">
+                    <label for="outlet" class="form-label">Media Outlet</label>
+                    <input type="text" class="form-control" id="outlet" name="outlet" value="{{ request.args.get('outlet', '') }}" placeholder="Outlet name">
+                </div>
+                <div class="col-md-3">
+                    <label for="topic" class="form-label">Topic</label>
+                    <input type="text" class="form-control" id="topic" name="topic" value="{{ request.args.get('topic', '') }}" placeholder="Politics, Tech, etc.">
+                </div>
+                <div class="col-md-3">
+                    <label for="sentiment" class="form-label">Sentiment</label>
+                    <select class="form-select" id="sentiment" name="sentiment">
+                        <option value="" {% if not request.args.get('sentiment') %}selected{% endif %}>All</option>
+                        <option value="positive" {% if request.args.get('sentiment') == 'positive' %}selected{% endif %}>Positive</option>
+                        <option value="negative" {% if request.args.get('sentiment') == 'negative' %}selected{% endif %}>Negative</option>
+                        <option value="neutral" {% if request.args.get('sentiment') == 'neutral' %}selected{% endif %}>Neutral</option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i> Filter
+                    </button>
+                    <a href="{{ url_for('journalists.list_journalists') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-times me-2"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Journalists grid -->
+<div class="row">
+    {% for journalist in journalists %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="{{ journalist.profile_image_url }}" alt="{{ journalist.name }}" class="rounded-circle" width="80" height="80">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">{{ journalist.name }}</h5>
+                        <p class="text-muted mb-0">
+                            {% if journalist.outlet %}
+                            <a href="{{ url_for('outlets.outlet_detail', outlet_id=journalist.outlet.id) }}" class="text-decoration-none">{{ journalist.outlet.name }}</a>
+                            {% else %}
+                            Independent
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <p class="card-text">{{ journalist.bio[:150] + '...' if journalist.bio and journalist.bio|length > 150 else journalist.bio }}</p>
+                
+                <div class="mt-3">
+                    {% if journalist.topics %}
+                    <p class="mb-1"><strong>Topics:</strong></p>
+                    <div>
+                        {% for topic in journalist.topics[:5] %}
+                        <span class="badge bg-primary">{{ topic.name }}</span>
+                        {% endfor %}
+                        {% if journalist.topics|length > 5 %}
+                        <span class="badge bg-secondary">+{{ journalist.topics|length - 5 }} more</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i> {{ journalist.location or 'Location unknown' }}
+                </small>
+                <a href="{{ url_for('journalists.journalist_detail', journalist_id=journalist.id) }}" class="btn btn-sm btn-primary">View Profile</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No journalists found matching your search criteria.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination placeholder - would be implemented in a real app -->
+{% if journalists|length > 12 %}
+<nav aria-label="Journalists pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

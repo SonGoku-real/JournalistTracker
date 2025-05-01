@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Media Outlets - AI Journalist Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="fas fa-building me-2"></i> Media Outlets
+        </h1>
+        <p class="lead text-muted">Browse and filter media organizations</p>
+    </div>
+    <div class="col-auto d-flex align-items-center">
+        <button class="btn btn-outline-secondary export-csv" data-endpoint="{{ url_for('outlets.export_outlets') }}">
+            <i class="fas fa-download me-2"></i> Export CSV
+        </button>
+    </div>
+</div>
+
+<!-- Filter form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-filter me-2"></i> Filter Outlets</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('outlets.list_outlets') }}" method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="country" class="form-label">Country</label>
+                    <select class="form-select" id="country" name="country">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                        <option value="{{ country }}" {% if request.args.get('country') == country %}selected{% endif %}>{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="topic" class="form-label">Topic Focus</label>
+                    <input type="text" class="form-control" id="topic" name="topic" value="{{ request.args.get('topic', '') }}" placeholder="Politics, Tech, etc.">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-2"></i> Filter
+                    </button>
+                    <a href="{{ url_for('outlets.list_outlets') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Media Outlets Grid -->
+<div class="row">
+    {% for outlet in outlets %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="{{ outlet.image_url }}" alt="{{ outlet.name }}" class="rounded" width="80" height="80">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-0">{{ outlet.name }}</h5>
+                        <p class="text-muted mb-0">{{ outlet.country or 'International' }}</p>
+                    </div>
+                </div>
+                
+                <p class="card-text">{{ outlet.description[:150] + '...' if outlet.description and outlet.description|length > 150 else outlet.description or 'No description available' }}</p>
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <div>
+                        <span class="badge bg-primary">{{ outlet.journalists|length }} Journalists</span>
+                        {% if outlet.journalists|length > 0 %}
+                        <div class="mt-2">
+                            <div class="d-flex">
+                                {% for journalist in outlet.journalists[:3] %}
+                                <img src="{{ journalist.profile_image_url }}" alt="{{ journalist.name }}" class="rounded-circle me-1" width="30" height="30" data-bs-toggle="tooltip" title="{{ journalist.name }}">
+                                {% endfor %}
+                                {% if outlet.journalists|length > 3 %}
+                                <span class="badge bg-secondary d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; border-radius: 50%;">+{{ outlet.journalists|length - 3 }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if outlet.website %}
+                    <a href="{{ outlet.website }}" target="_blank" class="btn btn-sm btn-outline-info align-self-end">
+                        <i class="fas fa-globe me-1"></i> Website
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    {{ outlet.articles|length }} articles tracked
+                </small>
+                <a href="{{ url_for('outlets.outlet_detail', outlet_id=outlet.id) }}" class="btn btn-sm btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> No media outlets found matching your search criteria.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Outlet Visualization Banner -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center mb-3 mb-md-0">
+                        <img src="https://images.unsplash.com/photo-1603802199870-ac76f5733c11" alt="News Media Building" class="img-fluid rounded" style="max-height: 300px;">
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Global Media Outlets Analysis</h3>
+                        <p class="lead">Track and analyze media organizations worldwide with our comprehensive database.</p>
+                        <p>Our platform monitors journalists across major news outlets, providing insights into their reporting patterns, sentiment trends, and topic focus areas.</p>
+                        <div class="mt-3">
+                            <a href="{{ url_for('analytics.dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-chart-bar me-2"></i> View Media Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination placeholder - would be implemented in a real app -->
+{% if outlets|length > 12 %}
+<nav aria-label="Outlets pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+        </li>
+        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

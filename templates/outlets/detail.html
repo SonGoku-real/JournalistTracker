@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ outlet.name }} - Media Outlet Profile{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('outlets.list_outlets') }}">Media Outlets</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ outlet.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Outlet Profile Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <img src="{{ outlet.image_url }}" alt="{{ outlet.name }}" class="outlet-img mb-3" width="180" height="180">
+                <h2 class="card-title">{{ outlet.name }}</h2>
+                {% if outlet.country %}
+                <h6 class="card-subtitle mb-3 text-muted">{{ outlet.country }}</h6>
+                {% endif %}
+                
+                {% if outlet.website %}
+                <p class="mb-3">
+                    <a href="{{ outlet.website }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fas fa-globe me-2"></i> Visit Website
+                    </a>
+                </p>
+                {% endif %}
+                
+                <div class="d-flex justify-content-around mt-4">
+                    <div class="text-center">
+                        <h3>{{ journalists|length }}</h3>
+                        <p class="text-muted mb-0">Journalists</p>
+                    </div>
+                    <div class="text-center">
+                        <h3>{{ articles|length }}</h3>
+                        <p class="text-muted mb-0">Articles</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{{ url_for('outlets.export_outlets') }}?id={{ outlet.id }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-download me-2"></i> Export Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Outlet Details -->
+    <div class="col-md-8">
+        <!-- Description Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i> About {{ outlet.name }}</h5>
+            </div>
+            <div class="card-body">
+                {% if outlet.description %}
+                <p>{{ outlet.description }}</p>
+                {% else %}
+                <p class="text-muted">No description available</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sentiment Analysis Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i> Content Sentiment Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="chart-container">
+                            <canvas id="sentimentChart" data-chart-type="pie" data-chart-data='{"labels": {{ sentiment_data.labels|tojson }}, "data": {{ sentiment_data.data|tojson }}}'></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <h6>Overall Content Tone</h6>
+                        <p class="text-muted mb-3">Based on {{ articles|length }} analyzed articles</p>
+                        
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ sentiment_data.data[0] }}%" 
+                                 aria-valuenow="{{ sentiment_data.data[0] }}" aria-valuemin="0" aria-valuemax="100">
+                                 {{ sentiment_data.data[0] }}% Positive
+                            </div>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ sentiment_data.data[1] }}%" 
+                                 aria-valuenow="{{ sentiment_data.data[1] }}" aria-valuemin="0" aria-valuemax="100">
+                                 {{ sentiment_data.data[1] }}% Negative
+                            </div>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ sentiment_data.data[2] }}%" 
+                                 aria-valuenow="{{ sentiment_data.data[2] }}" aria-valuemin="0" aria-valuemax="100">
+                                 {{ sentiment_data.data[2] }}% Neutral
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light mt-3">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            {% if sentiment_data.data[0] > sentiment_data.data[1] and sentiment_data.data[0] > sentiment_data.data[2] %}
+                            <strong>{{ outlet.name }}</strong> generally publishes content with a <strong>positive tone</strong>.
+                            {% elif sentiment_data.data[1] > sentiment_data.data[0] and sentiment_data.data[1] > sentiment_data.data[2] %}
+                            <strong>{{ outlet.name }}</strong> generally publishes content with a <strong>negative tone</strong>.
+                            {% else %}
+                            <strong>{{ outlet.name }}</strong> generally publishes content with a <strong>neutral tone</strong>.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Topic Distribution Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-tag me-2"></i> Topic Focus Areas</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="topicChart" data-chart-type="horizontalBar" data-chart-data='{"labels": {{ topic_data.labels|tojson }}, "data": {{ topic_data.data|tojson }}, "label": "Article Count"}'></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Journalists -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-user-edit me-2"></i> Journalists ({{ journalists|length }})</h5>
+    </div>
+    <div class="card-body">
+        {% if journalists %}
+        <div class="row">
+            {% for journalist in journalists %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{{ journalist.profile_image_url }}" alt="{{ journalist.name }}" class="rounded-circle" width="60" height="60">
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="card-title mb-0">{{ journalist.name }}</h5>
+                                {% if journalist.location %}
+                                <p class="text-muted mb-0"><i class="fas fa-map-marker-alt me-1"></i> {{ journalist.location }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <p class="card-text">{{ journalist.bio[:100] + '...' if journalist.bio and journalist.bio|length > 100 else journalist.bio or 'No biography available' }}</p>
+                        
+                        {% if journalist.topics %}
+                        <div class="mt-2">
+                            {% for topic in journalist.topics[:3] %}
+                            <span class="badge bg-secondary me-1">{{ topic.name }}</span>
+                            {% endfor %}
+                            {% if journalist.topics|length > 3 %}
+                            <span class="badge bg-secondary">+{{ journalist.topics|length - 3 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer text-end">
+                        <a href="{{ url_for('journalists.journalist_detail', journalist_id=journalist.id) }}" class="btn btn-sm btn-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-user-edit fa-3x mb-3 text-muted"></i>
+            <p class="text-muted">No journalists found for this outlet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Articles -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-newspaper me-2"></i> Recent Articles</h5>
+        {% if articles %}
+        <a href="{{ url_for('search.search_results') }}?outlet={{ outlet.name }}" class="btn btn-sm btn-outline-primary">View All</a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if articles %}
+        <div class="table-responsive">
+            <table class="table table-hover datatable" data-export="true">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Published</th>
+                        <th>Journalist</th>
+                        <th>Sentiment</th>
+                        <th>Topics</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                    <tr>
+                        <td>{{ article.title }}</td>
+                        <td>{{ article.published_at.strftime('%b %d, %Y') if article.published_at else 'Unknown' }}</td>
+                        <td>
+                            {% if article.journalist %}
+                            <a href="{{ url_for('journalists.journalist_detail', journalist_id=article.journalist.id) }}" class="text-decoration-none">
+                                {{ article.journalist.name }}
+                            </a>
+                            {% else %}
+                            Unknown
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if article.sentiment_label == 'positive' else 'danger' if article.sentiment_label == 'negative' else 'info' }}">
+                                {{ article.sentiment_label|capitalize if article.sentiment_label else 'Unknown' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% for topic in article.topics[:2] %}
+                            <span class="badge bg-secondary">{{ topic.name }}</span>
+                            {% endfor %}
+                            {% if article.topics|length > 2 %}
+                            <span class="badge bg-secondary">+{{ article.topics|length - 2 }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ article.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-newspaper fa-3x mb-3 text-muted"></i>
+            <p class="text-muted">No articles available for this outlet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any additional functionality specific to this page
+    });
+</script>
+{% endblock %}

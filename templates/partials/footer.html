@@ -1,0 +1,34 @@
+<footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5><i class="fas fa-newspaper me-2"></i> AI Journalist Tracker</h5>
+                <p class="text-muted">
+                    An advanced platform that automatically tracks journalists worldwide, analyzing their content, sentiment, tone, and providing insights.
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h5>Features</h5>
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('journalists.list_journalists') }}" class="text-decoration-none text-light">Journalist Profiles</a></li>
+                    <li><a href="{{ url_for('outlets.list_outlets') }}" class="text-decoration-none text-light">Media Outlets</a></li>
+                    <li><a href="{{ url_for('analytics.dashboard') }}" class="text-decoration-none text-light">Sentiment Analysis</a></li>
+                    <li><a href="{{ url_for('search.search_page') }}" class="text-decoration-none text-light">Advanced Search</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>Resources</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-decoration-none text-light">API Documentation</a></li>
+                    <li><a href="#" class="text-decoration-none text-light">User Guide</a></li>
+                    <li><a href="#" class="text-decoration-none text-light">Privacy Policy</a></li>
+                    <li><a href="#" class="text-decoration-none text-light">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="text-center text-muted">
+            <small>&copy; 2023 AI Journalist Tracker. All rights reserved.</small>
+        </div>
+    </div>
+</footer>
