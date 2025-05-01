@@ -7,10 +7,16 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    # Get counts for dashboard
+    # Check if we need to populate sample data (if the database is empty)
     journalist_count = Journalist.query.count()
-    outlet_count = Outlet.query.count()
     article_count = Article.query.count()
+    
+    if journalist_count == 0 or article_count == 0:
+        populate_sample_data()
+        return redirect(url_for('main.index'))
+    
+    # Get counts for dashboard
+    outlet_count = Outlet.query.count()
     topic_count = Topic.query.count()
     
     # Get latest journalists
@@ -21,18 +27,13 @@ def index():
     
     # Get top topics by article count
     topics = Topic.query.all()
-    topics_sorted = sorted(topics, key=lambda x: len(x.articles), reverse=True)
+    topics_sorted = sorted(topics, key=lambda x: len(x.articles), reverse=True) if topics else []
     top_topics = topics_sorted[:10]
     
     # Get sentiment distribution
     positive_count = Article.query.filter(Article.sentiment_label == 'positive').count()
     negative_count = Article.query.filter(Article.sentiment_label == 'negative').count()
     neutral_count = Article.query.filter(Article.sentiment_label == 'neutral').count()
-    
-    # Check if we need to populate sample data (if the database is empty)
-    if journalist_count == 0:
-        populate_sample_data()
-        return redirect(url_for('main.index'))
     
     return render_template('index.html', 
                           journalist_count=journalist_count,

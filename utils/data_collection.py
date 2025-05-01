@@ -484,9 +484,64 @@ def populate_sample_data():
     topics = create_sample_topics()
     logger.info(f"Created {len(topics)} sample topics")
     
+    # Check if articles already exist
+    article_count = Article.query.count()
+    if article_count > 0:
+        logger.info(f"Found {article_count} existing articles, skipping article creation")
+        return True
+    
     # Fetch and process articles
     api_key = os.environ.get("NEWS_API_KEY")
-    articles = fetch_and_process_articles(api_key, 20)
-    logger.info(f"Processed {len(articles)} articles")
+    logger.info(f"Processing articles with API key: {'Using sample data' if not api_key else 'Using API key'}")
     
-    return True
+    try:
+        # Generate sample articles directly
+        sample_articles_data = generate_sample_articles(20)
+        processed_articles = []
+        
+        for article_data in sample_articles_data:
+            # Directly assign a random journalist and outlet
+            try:
+                random_journalist = random.choice(journalists) if journalists else None
+                random_outlet = random_journalist.outlet if random_journalist and random_journalist.outlet else random.choice(outlets) if outlets else None
+                
+                if not random_outlet and outlets:
+                    random_outlet = random.choice(outlets)
+                
+                # Create article
+                article = Article(
+                    title=article_data.get("title", "Untitled"),
+                    url=article_data.get("url", "https://example.com"),
+                    content=article_data.get("content", ""),
+                    published_at=datetime.datetime.fromisoformat(article_data.get("publishedAt", "").replace("Z", "+00:00")),
+                    journalist_id=random_journalist.id if random_journalist else None,
+                    outlet_id=random_outlet.id if random_outlet else None
+                )
+                
+                # Add random topics (1-3)
+                num_topics = random.randint(1, min(3, len(topics)))
+                article.topics = random.sample(topics, num_topics)
+                
+                db.session.add(article)
+                processed_articles.append(article)
+                
+            except Exception as e:
+                logger.error(f"Error creating article: {e}")
+                continue
+        
+        db.session.commit()
+        logger.info(f"Created {len(processed_articles)} sample articles")
+        
+        # Analyze the articles
+        for article in processed_articles:
+            try:
+                from utils.nlp_utils import analyze_article
+                analyze_article(article)
+            except Exception as e:
+                logger.error(f"Error analyzing article {article.id}: {e}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error populating sample articles: {e}")
+        db.session.rollback()
+        return False
