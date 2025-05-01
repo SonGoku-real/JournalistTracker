@@ -65,7 +65,7 @@
                     </select>
                 </div>
                 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="country" class="form-label">Country</label>
                     <select class="form-select" id="country" name="country">
                         <option value="" selected>All Countries</option>
@@ -75,7 +75,17 @@
                     </select>
                 </div>
                 
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="region" class="form-label">Region</label>
+                    <select class="form-select" id="region" name="region">
+                        <option value="" selected>All Regions</option>
+                        {% for region in regions %}
+                        <option value="{{ region }}">{{ region }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
                     <label for="sentiment" class="form-label">Sentiment</label>
                     <select class="form-select" id="sentiment" name="sentiment">
                         <option value="" selected>All Sentiments</option>
@@ -131,6 +141,16 @@
                     <li class="list-group-item">
                         <a href="{{ url_for('search.search_results') }}?type=journalists&sentiment=positive" class="text-decoration-none">
                             <i class="fas fa-smile me-2"></i> Positive-Leaning Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&region=North%20America" class="text-decoration-none">
+                            <i class="fas fa-globe-americas me-2"></i> North American Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&region=Europe" class="text-decoration-none">
+                            <i class="fas fa-globe-europe me-2"></i> European Journalists
                         </a>
                     </li>
                 </ul>

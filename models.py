@@ -20,6 +20,10 @@ class Journalist(db.Model):
     profile_image_url = db.Column(db.String(255), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(100), nullable=True)
+    region = db.Column(db.String(50), nullable=True)  # Added region field
+    verified = db.Column(db.Boolean, default=False)   # Added verification status
+    last_contacted = db.Column(db.DateTime, nullable=True)  # Track last contact date
+    beat = db.Column(db.String(100), nullable=True)  # Journalist's primary beat/focus
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -41,8 +45,13 @@ class Journalist(db.Model):
             'profile_image_url': self.profile_image_url,
             'bio': self.bio,
             'location': self.location,
-            'outlet': self.outlet.name if self.outlet else None,
-            'topics': [topic.name for topic in self.topics]
+            'region': self.region,
+            'verified': self.verified,
+            'beat': self.beat,
+            'last_contacted': self.last_contacted.isoformat() if self.last_contacted else None,
+            'outlet': self.outlet.to_dict() if self.outlet else None,
+            'topics': [topic.name for topic in self.topics],
+            'article_count': len(self.articles) if self.articles else 0
         }
 
 class Outlet(db.Model):
