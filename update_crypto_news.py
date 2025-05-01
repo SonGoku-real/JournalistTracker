@@ -1,28 +1,18 @@
 """
-Script to fetch and update the crypto news feed.
-Can be run manually or scheduled via cron.
-
-Usage:
-    python refresh_news.py [--days=1] [--analyze=true]
+Script to fetch the latest cryptocurrency news and save it to the database.
+This script avoids circular imports by creating a standalone environment.
 """
 
 import os
-import sys
+import json
 import logging
 import requests
 from datetime import datetime, timedelta
-import argparse
+import importlib
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='Refresh cryptocurrency news feed')
-parser.add_argument('--days', type=int, default=1, help='Number of days to look back for articles')
-parser.add_argument('--limit', type=int, default=10, help='Maximum number of articles to process')
-parser.add_argument('--analyze', type=str, default='false', help='Whether to analyze content with OpenAI (true/false)')
-args = parser.parse_args()
 
 # News API configuration
 NEWS_API_KEY = os.environ.get("NEWS_API_KEY")
@@ -34,17 +24,8 @@ CRYPTO_KEYWORDS = [
     "crypto", "defi", "nft", "token", "coinbase", "binance"
 ]
 
-def fetch_latest_crypto_news(days=1, limit=10):
-    """
-    Fetch the latest cryptocurrency news articles using the News API.
-    
-    Args:
-        days (int): Number of days to look back for articles
-        limit (int): Maximum number of articles to return
-        
-    Returns:
-        list: List of news articles as dictionaries
-    """
+def fetch_crypto_news(days=3):
+    """Fetch the latest crypto news directly from News API."""
     if not NEWS_API_KEY:
         logger.error("NEWS_API_KEY not found in environment variables")
         return []
@@ -75,8 +56,8 @@ def fetch_latest_crypto_news(days=1, limit=10):
             return []
             
         articles = data.get('articles', [])
-        logger.info(f"Found {len(articles)} articles, processing up to {limit}")
-        return articles[:limit]  # Limit the number of articles
+        logger.info(f"Found {len(articles)} articles")
+        return articles
         
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching news: {e}")
@@ -85,25 +66,21 @@ def fetch_latest_crypto_news(days=1, limit=10):
         logger.error(f"Unexpected error: {e}")
         return []
 
-def main():
-    # Convert analyze arg from string to boolean
-    analyze_content = args.analyze.lower() == 'true'
-    
-    # Import necessary modules (delayed import to avoid circular imports)
+def update_database_with_articles():
+    """Fetch articles and update the database."""
+    # Import Flask app and models here to avoid circular imports
     from flask import Flask
-    from app import db, app
+    from app import db
     from models import Article, Journalist, Outlet, Topic
+    from app import app
     
-    # Fetch the latest crypto news
-    articles = fetch_latest_crypto_news(days=args.days, limit=args.limit)
+    articles = fetch_crypto_news(days=3)
     if not articles:
-        logger.warning("No articles found or API error occurred")
+        logger.warning("No articles found to import")
         return 0
     
-    # Process and add articles to the database
+    articles_added = 0
     with app.app_context():
-        articles_added = 0
-        
         for article_data in articles:
             # Skip if missing critical fields
             if not all(k in article_data for k in ['title', 'url', 'publishedAt']):
@@ -122,14 +99,14 @@ def main():
             if not outlet:
                 outlet = Outlet(
                     name=source_name,
-                    website=None,
-                    country=None,
+                    website=None,  # We don't have the website URL from the API
+                    country=None,  # We don't have country info
                     description=f"Crypto news outlet: {source_name}",
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow()
                 )
                 db.session.add(outlet)
-                db.session.flush()
+                db.session.flush()  # Get ID without committing
             
             # Get or create journalist
             author = article_data.get('author', 'Unknown Author')
@@ -138,12 +115,11 @@ def main():
                 journalist = Journalist(
                     name=author,
                     outlet_id=outlet.id,
-                    region='Unknown',  # Default region
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow()
                 )
                 db.session.add(journalist)
-                db.session.flush()
+                db.session.flush()  # Get ID without committing
             
             # Parse published date
             try:
@@ -155,17 +131,18 @@ def main():
             article = Article(
                 title=article_data['title'],
                 url=article_data['url'],
-                content=article_data.get('description', ''),
+                content=article_data.get('description', ''),  # Use description initially
                 published_at=published_at,
                 journalist_id=journalist.id,
                 outlet_id=outlet.id,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
+                # Set default sentiment (can be updated later with OpenAI)
                 sentiment_score=0.0,
                 sentiment_label='neutral'
             )
             
-            # Try to extract topics from keywords
+            # Assign topics based on keywords found in title/description
             crypto_topics = {
                 'Bitcoin': ['bitcoin', 'btc'],
                 'Ethereum': ['ethereum', 'eth'],
@@ -177,40 +154,39 @@ def main():
                 'Cryptocurrency': ['cryptocurrency', 'crypto']
             }
             
-            article_text = (article_data.get('title', '') + ' ' + 
-                           article_data.get('description', '')).lower()
+            # Check article title and description for keywords
+            search_text = (article_data.get('title', '') + ' ' + article_data.get('description', '')).lower()
             
-            # Get or create topics and add to article
             for topic_name, keywords in crypto_topics.items():
-                if any(keyword in article_text for keyword in keywords):
-                    # Look up topic
-                    topic = Topic.query.filter_by(name=topic_name).first()
-                    if not topic:
-                        # Create topic if it doesn't exist
-                        topic = Topic(
-                            name=topic_name,
-                            created_at=datetime.utcnow(),
-                            updated_at=datetime.utcnow()
-                        )
-                        db.session.add(topic)
-                        db.session.flush()
-                    
-                    # Add topic to article
-                    article.topics.append(topic)
+                for keyword in keywords:
+                    if keyword.lower() in search_text:
+                        # Get or create topic
+                        topic = Topic.query.filter_by(name=topic_name).first()
+                        if not topic:
+                            topic = Topic(
+                                name=topic_name,
+                                created_at=datetime.utcnow(),
+                                updated_at=datetime.utcnow()
+                            )
+                            db.session.add(topic)
+                            db.session.flush()
+                        
+                        # Add topic to article
+                        article.topics.append(topic)
+                        break  # Once we find one keyword match, move to next topic
             
-            # Add article to database
+            # Add and commit
             db.session.add(article)
             articles_added += 1
+            logger.info(f"Added article: {article.title}")
         
-        # Commit all changes if any articles were added
         if articles_added > 0:
             db.session.commit()
-            logger.info(f"Added {articles_added} new articles to the database")
-        else:
-            logger.info("No new articles to add")
-            
+            logger.info(f"Successfully added {articles_added} new articles")
+        
         return articles_added
 
 if __name__ == "__main__":
-    count = main()
-    print(f"Added {count} new articles to the database")
+    logger.info("Starting crypto news update process")
+    count = update_database_with_articles()
+    logger.info(f"Added {count} new real crypto articles to the database")
