@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for
-from models import Journalist, Article
+from models import Journalist, Article, Outlet, Topic
 from app import db
 
 journalist_bp = Blueprint('journalists', __name__, url_prefix='/journalists')
@@ -58,12 +58,16 @@ def journalist_detail(journalist_id):
     # Prepare data for Charts.js
     sentiment_data = {
         'labels': ['Positive', 'Negative', 'Neutral'],
-        'data': [
-            round(positive_count / total_count * 100 if total_count > 0 else 0, 1),
-            round(negative_count / total_count * 100 if total_count > 0 else 0, 1),
-            round(neutral_count / total_count * 100 if total_count > 0 else 0, 1)
-        ]
+        'data': [0, 0, 0]  # Default to zeros
     }
+    
+    # Only calculate percentages if there are articles
+    if total_count > 0:
+        sentiment_data['data'] = [
+            round(positive_count / total_count * 100, 1),
+            round(negative_count / total_count * 100, 1),
+            round(neutral_count / total_count * 100, 1)
+        ]
     
     # Get topic distribution
     topic_counts = {}
@@ -74,12 +78,20 @@ def journalist_detail(journalist_id):
             else:
                 topic_counts[topic.name] = 1
     
-    # Sort topics by count
-    sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+    # Prepare topic data
     topic_data = {
-        'labels': [item[0] for item in sorted_topics[:5]],
-        'data': [item[1] for item in sorted_topics[:5]]
+        'labels': [],
+        'data': []
     }
+    
+    # Only process topics if we have some
+    if topic_counts:
+        # Sort topics by count
+        sorted_topics = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+        topic_data = {
+            'labels': [item[0] for item in sorted_topics[:5]],
+            'data': [item[1] for item in sorted_topics[:5]]
+        }
     
     return render_template('journalists/detail.html', 
                           journalist=journalist, 
