@@ -38,6 +38,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if '/news' in request.path %}active{% endif %}" href="{{ url_for('news.latest_news') }}">
+                                <i class="fas fa-newspaper me-1"></i> Latest News
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if '/journalists' in request.path %}active{% endif %}" href="{{ url_for('journalists.list_journalists') }}">
                                 <i class="fas fa-user-edit me-1"></i> Journalists
                             </a>
@@ -87,6 +92,7 @@
                 <div class="col-md-3">
                     <h5>Features</h5>
                     <ul class="list-unstyled">
+                        <li><a href="{{ url_for('news.latest_news') }}" class="text-decoration-none text-light">Latest News</a></li>
                         <li><a href="{{ url_for('journalists.list_journalists') }}" class="text-decoration-none text-light">Journalist Profiles</a></li>
                         <li><a href="{{ url_for('outlets.list_outlets') }}" class="text-decoration-none text-light">Media Outlets</a></li>
                         <li><a href="{{ url_for('analytics.dashboard') }}" class="text-decoration-none text-light">Sentiment Analysis</a></li>

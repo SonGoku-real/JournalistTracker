@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Keyword Tracking - AI Journalist Tracker{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold">
+            <i class="fas fa-tags me-2"></i> Tracked Keywords
+        </h1>
+        <p class="lead">Monitor real-time news by these cryptocurrency-related keywords</p>
+    </div>
+    <div class="col-md-4 d-flex justify-content-end align-items-center">
+        <a href="{{ url_for('news.latest_news') }}" class="btn btn-primary">
+            <i class="fas fa-newspaper me-1"></i> View Latest News
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h5 class="mb-0">Currently Tracked Keywords</h5>
+            </div>
+            <div class="card-body">
+                <div class="row gy-3">
+                    {% for keyword in keywords %}
+                    <div class="col-md-4 col-lg-3">
+                        <div class="d-flex align-items-center">
+                            <div class="badge bg-primary p-2 me-2">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                            <a href="{{ url_for('news.latest_news', keyword=keyword) }}" class="text-decoration-none fs-5">
+                                {{ keyword }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card bg-dark border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i> Keyword Tracking Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>The AI Journalist Tracker automatically monitors real-time crypto news by tracking the keywords listed above. Our system:</p>
+                
+                <ul>
+                    <li>Checks major crypto news sources every hour for new content</li>
+                    <li>Uses advanced NLP to analyze sentiment and extract topics</li>
+                    <li>Identifies the journalists and publications discussing these topics</li>
+                    <li>Maps relationships between journalists, topics, and sentiments</li>
+                </ul>
+                
+                <p>This provides you with an up-to-date view of the cryptocurrency media landscape, helping you identify influencers and track narrative changes in real-time.</p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Pro Tip:</strong> Use the <a href="{{ url_for('news.latest_news') }}" class="alert-link">Latest News</a> page to apply filters and track specific topics or keywords of interest.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -42,6 +42,7 @@ with app.app_context():
     from routes.outlet_routes import outlet_bp
     from routes.analytics_routes import analytics_bp
     from routes.search_routes import search_bp
+    from routes.news_routes import news_bp
     
     # Register blueprints
     app.register_blueprint(main_bp)
@@ -49,6 +50,7 @@ with app.app_context():
     app.register_blueprint(outlet_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(news_bp)
     
     # Create database tables
     db.create_all()
