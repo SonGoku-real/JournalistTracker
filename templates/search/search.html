@@ -19,19 +19,32 @@
 <!-- Search Hero Section -->
 <div class="search-hero text-white text-center mb-4">
     <div class="container">
-        <h1 class="display-4 mb-3"><i class="fas fa-search me-3"></i>Advanced Journalist Search</h1>
-        <p class="lead mb-4">Find journalists, media outlets, and articles with our powerful search tools</p>
+        <h1 class="display-4 mb-3"><i class="fas fa-search me-3"></i>Crypto Journalist Tracker</h1>
+        <p class="lead mb-4">Find journalists covering cryptocurrency, blockchain, and Web3 technologies</p>
         
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <form id="search-form" action="{{ url_for('search.search_results') }}" method="get" class="mb-3">
                     <div class="input-group input-group-lg">
-                        <input type="text" class="form-control" id="search-query" name="q" placeholder="Search for journalists, outlets, or articles...">
+                        <input type="text" class="form-control" id="search-query" name="q" placeholder="Search for crypto journalists by name, location, or outlet...">
                         <button class="btn btn-primary" type="submit">
                             <i class="fas fa-search me-2"></i> Search
                         </button>
                     </div>
                 </form>
+                
+                <!-- Quick Topic Buttons -->
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Cryptocurrency" class="btn btn-outline-light">
+                        <i class="fas fa-coins me-2"></i> Cryptocurrency
+                    </a>
+                    <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Blockchain" class="btn btn-outline-light">
+                        <i class="fas fa-link me-2"></i> Blockchain
+                    </a>
+                    <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Web3" class="btn btn-outline-light">
+                        <i class="fas fa-globe me-2"></i> Web3
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -129,13 +142,18 @@
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Politics" class="text-decoration-none">
-                            <i class="fas fa-landmark me-2"></i> Political Journalists
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Cryptocurrency" class="text-decoration-none">
+                            <i class="fas fa-coins me-2"></i> Crypto Journalists
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Technology" class="text-decoration-none">
-                            <i class="fas fa-microchip me-2"></i> Tech Journalists
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Blockchain" class="text-decoration-none">
+                            <i class="fas fa-link me-2"></i> Blockchain Journalists
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=journalists&topic=Web3" class="text-decoration-none">
+                            <i class="fas fa-globe me-2"></i> Web3 Journalists
                         </a>
                     </li>
                     <li class="list-group-item">
@@ -176,13 +194,18 @@
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Technology" class="text-decoration-none">
-                            <i class="fas fa-microchip me-2"></i> Tech-Focused Outlets
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Cryptocurrency" class="text-decoration-none">
+                            <i class="fas fa-coins me-2"></i> Crypto Media Outlets
                         </a>
                     </li>
                     <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Business" class="text-decoration-none">
-                            <i class="fas fa-chart-line me-2"></i> Business News Outlets
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Blockchain" class="text-decoration-none">
+                            <i class="fas fa-link me-2"></i> Blockchain Publications
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=outlets&topic=Web3" class="text-decoration-none">
+                            <i class="fas fa-globe me-2"></i> Web3 News Sources
                         </a>
                     </li>
                 </ul>
@@ -198,23 +221,23 @@
             <div class="card-body">
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Politics" class="text-decoration-none">
-                            <i class="fas fa-landmark me-2"></i> Political Stories
+                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Cryptocurrency" class="text-decoration-none">
+                            <i class="fas fa-coins me-2"></i> Cryptocurrency Articles
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Blockchain" class="text-decoration-none">
+                            <i class="fas fa-link me-2"></i> Blockchain News
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Web3" class="text-decoration-none">
+                            <i class="fas fa-globe me-2"></i> Web3 Analysis
                         </a>
                     </li>
                     <li class="list-group-item">
                         <a href="{{ url_for('search.search_results') }}?type=articles&sentiment=positive" class="text-decoration-none">
-                            <i class="fas fa-smile me-2"></i> Positive News
-                        </a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=articles&sentiment=negative" class="text-decoration-none">
-                            <i class="fas fa-frown me-2"></i> Negative News
-                        </a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="{{ url_for('search.search_results') }}?type=articles&topic=Technology" class="text-decoration-none">
-                            <i class="fas fa-microchip me-2"></i> Tech Articles
+                            <i class="fas fa-smile me-2"></i> Positive Crypto Coverage
                         </a>
                     </li>
                 </ul>
@@ -236,10 +259,10 @@
             <div class="col-md-3 mb-3">
                 <div class="card h-100 bg-primary bg-opacity-10">
                     <div class="card-body text-center">
-                        <i class="fas fa-landmark fa-3x mb-3"></i>
-                        <h5>Politics</h5>
-                        <p class="small">{{ topics[0].articles|length if topics and topics|length > 0 else '0' }} articles</p>
-                        <a href="{{ url_for('search.search_results') }}?topic=Politics" class="btn btn-sm btn-outline-primary mt-2">View Articles</a>
+                        <i class="fas fa-coins fa-3x mb-3"></i>
+                        <h5>Cryptocurrency</h5>
+                        <p class="small">{{ topics|selectattr('name', 'equalto', 'Cryptocurrency')|first|attr('articles')|length if topics else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Cryptocurrency" class="btn btn-sm btn-outline-primary mt-2">View Articles</a>
                     </div>
                 </div>
             </div>
@@ -247,10 +270,10 @@
             <div class="col-md-3 mb-3">
                 <div class="card h-100 bg-success bg-opacity-10">
                     <div class="card-body text-center">
-                        <i class="fas fa-microchip fa-3x mb-3"></i>
-                        <h5>Technology</h5>
-                        <p class="small">{{ topics[1].articles|length if topics and topics|length > 1 else '0' }} articles</p>
-                        <a href="{{ url_for('search.search_results') }}?topic=Technology" class="btn btn-sm btn-outline-success mt-2">View Articles</a>
+                        <i class="fas fa-link fa-3x mb-3"></i>
+                        <h5>Blockchain</h5>
+                        <p class="small">{{ topics|selectattr('name', 'equalto', 'Blockchain')|first|attr('articles')|length if topics else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Blockchain" class="btn btn-sm btn-outline-success mt-2">View Articles</a>
                     </div>
                 </div>
             </div>
@@ -258,10 +281,10 @@
             <div class="col-md-3 mb-3">
                 <div class="card h-100 bg-info bg-opacity-10">
                     <div class="card-body text-center">
-                        <i class="fas fa-chart-line fa-3x mb-3"></i>
-                        <h5>Business</h5>
-                        <p class="small">{{ topics[2].articles|length if topics and topics|length > 2 else '0' }} articles</p>
-                        <a href="{{ url_for('search.search_results') }}?topic=Business" class="btn btn-sm btn-outline-info mt-2">View Articles</a>
+                        <i class="fas fa-globe fa-3x mb-3"></i>
+                        <h5>Web3</h5>
+                        <p class="small">{{ topics|selectattr('name', 'equalto', 'Web3')|first|attr('articles')|length if topics else '0' }} articles</p>
+                        <a href="{{ url_for('search.search_results') }}?topic=Web3" class="btn btn-sm btn-outline-info mt-2">View Articles</a>
                     </div>
                 </div>
             </div>
@@ -269,10 +292,10 @@
             <div class="col-md-3 mb-3">
                 <div class="card h-100 bg-warning bg-opacity-10">
                     <div class="card-body text-center">
-                        <i class="fas fa-flask fa-3x mb-3"></i>
-                        <h5>Science</h5>
-                        <p class="small">{{ topics[3].articles|length if topics and topics|length > 3 else '0' }} articles</p>
-                        <a href="{{ url_for('search.search_results') }}?topic=Science" class="btn btn-sm btn-outline-warning mt-2">View Articles</a>
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h5>NFTs</h5>
+                        <p class="small">0 articles</p>
+                        <a href="{{ url_for('search.search_results') }}?q=NFT" class="btn btn-sm btn-outline-warning mt-2">View Articles</a>
                     </div>
                 </div>
             </div>
