@@ -1,0 +1,157 @@
+# AI-Powered Journalist Tracking Platform
+
+An advanced platform that automatically tracks journalists worldwide, analyzing their content, sentiment, tone, and providing contact information and insights.
+
+## Features
+
+- **Journalist Profiles**: Comprehensive profiles for journalists including contact details, media outlets, location, and content analysis
+- **Media Outlet Database**: Track media organizations and their affiliated journalists
+- **Sentiment Analysis**: AI-powered analysis of journalists' content to determine sentiment and tone
+- **Automatic Data Collection**: Scheduled collection of articles and updates from news sources and social media
+- **Topic Tracking**: Identify and track topics that journalists write about
+- **Advanced Search**: Search and filter journalists by location, outlet, sentiment, and topics
+- **Export Capabilities**: Export data in CSV or JSON formats for further analysis
+- **Analytics Dashboard**: Visualize trends in sentiment, topics, and journalist activity
+
+## Technology Stack
+
+- **Backend**: Python, Flask, SQLAlchemy
+- **Database**: SQLite (development), PostgreSQL (production)
+- **NLP**: NLTK, spaCy, Hugging Face Transformers
+- **Data Collection**: NewsAPI, Twitter API, Web Scraping (newspaper3k)
+- **Frontend**: HTML, CSS, Bootstrap, Chart.js
+- **Hosting**: Replit
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10 or higher
+- API keys for NewsAPI and Twitter
+- Git (for version control)
+
+### Installation
+
+1. Fork and clone the Replit project or set up locally:
+
+```bash
+git clone https://github.com/yourusername/journalist-tracker.git
+cd journalist-tracker
+```
+
+2. Set up environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file and add your API keys and configuration.
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Initialize the database:
+
+```bash
+python launch.py
+```
+
+### Running the Application
+
+```bash
+python launch.py
+```
+
+This will start the Flask application on port 8080. If you're using Replit, it will automatically open in the browser.
+
+## Project Structure
+
+```
+journalist-tracker/
+├── config.py                 # Configuration settings
+├── database/                 # Database models and schemas
+├── launch.py                 # Application entry point
+├── main.py                   # Main Flask application
+├── modules/                  # Application modules
+│   ├── api/                  # API endpoints
+│   ├── data_collection/      # Data collection modules
+│   └── nlp/                  # NLP and sentiment analysis
+├── requirements.txt          # Python dependencies
+├── scheduler.py              # Background task scheduler
+├── static/                   # Static assets (CSS, JS)
+└── templates/                # HTML templates
+```
+
+## Data Collection
+
+The platform collects data from various sources:
+
+1. **News API**: Collects news articles from thousands of sources
+2. **Twitter API**: Gathers journalist profile information and latest tweets
+3. **Web Scraping**: Extracts full article content for analysis
+
+Data collection is scheduled to run automatically at set intervals.
+
+## NLP Analysis
+
+The platform performs the following analysis on collected content:
+
+- **Sentiment Analysis**: Determines if content is positive, negative, or neutral
+- **Topic Extraction**: Identifies the main topics discussed
+- **Entity Recognition**: Extracts people, organizations, and locations mentioned
+- **Tone Detection**: Identifies the tone (analytical, confident, tentative, etc.)
+
+## API Endpoints
+
+The platform provides RESTful API endpoints for programmatic access:
+
+- `/api/journalists`: List and filter journalists
+- `/api/journalists/<id>`: Get journalist details
+- `/api/outlets`: List and filter media outlets
+- `/api/outlets/<id>`: Get outlet details
+- `/api/articles`: List and filter articles
+- `/api/articles/<id>`: Get article details
+- `/api/analytics`: Get platform analytics and insights
+
+## Customization
+
+### Adding New Data Sources
+
+To add new data sources, create a new collector class in the `modules/data_collection` directory that follows the same interface as existing collectors.
+
+### Customizing NLP Analysis
+
+You can customize the NLP analysis by modifying the settings in the `.env` file:
+
+```
+SENTIMENT_POSITIVE_THRESHOLD=0.3
+SENTIMENT_NEGATIVE_THRESHOLD=-0.3
+ENTITY_CONFIDENCE_THRESHOLD=0.5
+```
+
+Or by modifying the analysis pipeline in `modules/nlp/sentiment_analyzer.py`.
+
+## Ethical Considerations
+
+This platform is designed for legitimate research, media relations, and journalist outreach. Please use responsibly and respect:
+
+- **Privacy**: Only collect and use publicly available information
+- **Terms of Service**: Respect the ToS of all APIs and services used
+- **Rate Limiting**: Implement proper rate limiting to avoid overwhelming sources
+- **Data Storage**: Follow relevant data protection regulations
+- **Attribution**: Properly attribute content sources
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [NewsAPI](https://newsapi.org/) for news article data
+- [Twitter API](https://developer.twitter.com/) for journalist profile data
+- [Hugging Face](https://huggingface.co/) for NLP models
+- [Flask](https://flask.palletsprojects.com/) for the web framework
+- [Replit](https://replit.com/) for hosting
