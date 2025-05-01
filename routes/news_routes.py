@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request, redirect, url_for
 from models import Article, Topic, db
 from sqlalchemy import desc
-from utils.news_fetcher import update_news_feed
 import logging
+import importlib
 
 news_bp = Blueprint('news', __name__, url_prefix='/news')
 logger = logging.getLogger(__name__)
@@ -60,7 +60,9 @@ def refresh_news():
         days = 1
     
     try:
-        count = update_news_feed(days=days)
+        # Dynamically import to avoid circular imports
+        news_fetcher = importlib.import_module('utils.news_fetcher')
+        count = news_fetcher.update_news_feed(days=days)
         return jsonify({
             'success': True,
             'message': f'Successfully added {count} new articles',
@@ -80,6 +82,7 @@ def manage_keywords():
     """
     # In a future implementation, this would allow managing custom keywords
     # For now, we show the predefined keywords from news_fetcher.py
-    from utils.news_fetcher import CRYPTO_KEYWORDS
+    # Dynamically import to avoid circular imports
+    news_fetcher = importlib.import_module('utils.news_fetcher')
     
-    return render_template('news/keywords.html', keywords=CRYPTO_KEYWORDS)
+    return render_template('news/keywords.html', keywords=news_fetcher.CRYPTO_KEYWORDS)

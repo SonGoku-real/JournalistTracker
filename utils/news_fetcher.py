@@ -2,7 +2,8 @@ import requests
 import logging
 import os
 from datetime import datetime, timedelta
-from app import app
+from flask import Flask
+import importlib
 from models import Article, Journalist, Outlet, Topic, db
 from utils.openai_analyzer import analyze_article_sentiment, extract_article_topics, summarize_article
 from utils.web_scraper import get_website_text_content
@@ -79,6 +80,9 @@ def process_news_articles(articles, analyze_content=True):
     Returns:
         int: Number of new articles added
     """
+    # Import app directly inside the function to avoid circular imports
+    from app import app
+    
     with app.app_context():
         articles_added = 0
         
